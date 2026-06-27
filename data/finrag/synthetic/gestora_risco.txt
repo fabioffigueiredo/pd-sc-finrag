@@ -1,0 +1,17 @@
+Relatório de Risco da Gestora — Período de Referência
+
+Este relatório consolida as métricas de risco do fundo, abrangendo as dimensões de mercado, crédito, liquidez e governança. O objetivo é oferecer transparência sobre os limites vigentes, os cenários de estresse e a aderência da carteira à política de investimentos aprovada pelo comitê de risco da gestora.
+
+O risco de mercado é mensurado principalmente pela duration modificada agregada da carteira, que se mantém em patamar conservador, abaixo do limite máximo estabelecido na política de investimentos. A sensibilidade do portfólio a movimentos paralelos na curva de juros é monitorada diariamente. Posições em derivativos de taxa são utilizadas com fins exclusivos de hedge e ajuste tático, sem alavancagem superior ao permitido no regulamento do fundo.
+
+Os cenários de estresse consideram choques de magnitude relevante nas principais variáveis de risco. Para juros, o cenário adverso simula um deslocamento abrupto de duzentos pontos-base na estrutura a termo, calculando o impacto no valor de mercado da carteira. Para câmbio, o choque avaliado corresponde a uma desvalorização expressiva da moeda local em curto intervalo de tempo. Os resultados dos cenários permanecem dentro dos limites de perda máxima tolerada.
+
+O risco de crédito é avaliado com base na qualidade dos emissores presentes na carteira. A alocação está concentrada em instrumentos com classificação de risco de grau de investimento, conforme análise interna da gestora. O monitoramento inclui acompanhamento de notícias setoriais, demonstrações financeiras e eventuais alterações em ratings atribuídos por agências especializadas. Não há concentração expressiva em um único emissor, respeitando os limites da política.
+
+O risco de liquidez é gerenciado por meio de colchão de caixa e ativos de alta liquidez, dimensionado para cobrir resgates estimados sob cenário estressado. A carteira mantém parcela relevante em instrumentos com liquidez diária ou em prazo inferior a trinta dias. O descasamento de prazos entre ativos e passivos é monitorado continuamente, com relatórios periódicos apresentados ao comitê de risco.
+
+A política de diversificação estabelece limites máximos por emissor, por classe de ativo e por setor econômico. Esses limites são verificados diariamente pelo time de risco e reportados ao comitê mensalmente. Quando identificada aproximação de qualquer limite, o gestor é acionado para avaliar ajuste de posição antes do encerramento do pregão seguinte, garantindo conformidade contínua.
+
+A gestora utiliza métricas de Valor em Risco de forma complementar às análises de cenário. O VaR é estimado com base em metodologia paramétrica, utilizando horizonte de um dia e intervalo de confiança de noventa e nove por cento. Os resultados são comparados com perdas efetivas por meio de backtesting periódico, permitindo avaliar a adequação do modelo ao perfil de risco real da carteira.
+
+A governança de risco envolve reuniões periódicas do comitê, com participação dos gestores de carteira, da área de compliance e da diretoria responsável. As atas são registradas e as deliberações formalizadas em política de risco atualizada anualmente ou sempre que houver alteração relevante no perfil de risco do fundo ou nas condições de mercado que justifiquem revisão dos parâmetros vigentes.

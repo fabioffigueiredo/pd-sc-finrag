@@ -1,0 +1,13 @@
+# Segredos — nunca commitar
+.env
+
+# Ambiente e caches
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ipynb_checkpoints/
+
+# Índice FAISS (reproduzível via scripts/prepare_corpus.py)
+data/finrag/index/*.faiss
+data/finrag/index/*.pkl
