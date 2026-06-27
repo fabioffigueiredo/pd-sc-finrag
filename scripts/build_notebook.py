@@ -63,6 +63,21 @@ from finrag.embeddings import SemanticIndex, bm25_search
 from finrag.guardrails import detect_injection, sanitize_chunks
 from finrag.rag import answer, build_augmented_prompt
 
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+from pathlib import Path
+%matplotlib inline
+sns.set_theme(style="whitegrid", font_scale=0.9)
+plt.rcParams["figure.dpi"] = 110
+AZUL = "#1f4e79"        # azul institucional (mesma identidade do Projeto 1)
+IMG = Path("../reports/finrag/images"); IMG.mkdir(parents=True, exist_ok=True)
+
+def salvar_fig(nome):
+    plt.tight_layout()
+    plt.savefig(IMG / nome, bbox_inches="tight", dpi=130)
+    plt.show()
+
 print("Ambiente carregado.")""")
 
 # ---------------------------------------------------------------- Seção 1
@@ -101,6 +116,15 @@ comparativo = pd.DataFrame([
      "custo": "zero (só hardware)", "hardware": "CPU + ~2 GB RAM"},
 ])
 comparativo""")
+
+code(r"""# Figura 1: latência observada — remoto (Groq) vs local (GPT4All).
+fig, ax = plt.subplots(figsize=(6, 3.6))
+barras = ax.bar(["Groq\n(remoto)", "GPT4All\n(local, CPU)"], [dt_groq, dt_local],
+                color=[AZUL, "#c0894a"])
+ax.bar_label(barras, fmt="%.2f s", padding=3)
+ax.set_ylabel("Latência (s)")
+ax.set_title("Latência por backend — mesma pergunta, temperature=0")
+salvar_fig("fig1_latencia.png")""")
 
 md(r"""**Leitura dos resultados.** Os tempos acima mostram o trade-off central da
 Rubrica 4: o **Groq** responde em fração de segundo porque roda em infraestrutura
@@ -177,6 +201,21 @@ try:
 except ValueError as e:
     print("Tratado por try/except (esperado):", e)""")
 
+code(r"""# Figura 2: robustez do prompting (JSON válido por técnica) e sentimentos extraídos.
+ok = df_ext["erro"].isna() if "erro" in df_ext.columns else pd.Series(True, index=df_ext.index)
+por_tec = (df_ext[ok].groupby("tecnica").size()
+           .reindex(["zero_shot", "few_shot", "cot", "meta"]).fillna(0))
+fig, (a1, a2) = plt.subplots(1, 2, figsize=(9.2, 3.6))
+b1 = a1.bar(por_tec.index, por_tec.values, color=AZUL)
+a1.bar_label(b1, fmt="%d", padding=2); a1.set_ylim(0, len(noticias) + 0.6)
+a1.set_title("JSON válido por técnica"); a1.set_ylabel(f"válidos (de {len(noticias)})")
+a1.tick_params(axis="x", rotation=15)
+sent = df_ext.loc[ok, "sentimento"].value_counts()
+b2 = a2.bar(sent.index, sent.values, color="#5b8c5a")
+a2.bar_label(b2, fmt="%d", padding=2)
+a2.set_title("Sentimentos extraídos (todas as técnicas)"); a2.set_ylabel("ocorrências")
+salvar_fig("fig2_prompting.png")""")
+
 md(r"""**Avaliação das técnicas.** Meu critério explícito de qualidade é a **taxa de
 JSON válido** (todos os campos presentes e `sentimento` no enum) e a coerência da
 extração. Na prática, **few-shot** e **meta-prompting** tendem a ser os mais
@@ -220,6 +259,24 @@ for q in ["proteção contra alta de juros",
           "perspectiva para a bolsa e setores defensivos"]:
     comparar(q)""")
 
+code(r"""# Figura 3: distribuição de chunks por documento e semântica vs BM25 (top-4).
+porfonte = pd.Series([c.source for c in chunks]).value_counts().sort_values()
+q = "colchão de caixa e risco de liquidez"
+sem = [s for _, s in idx.search(q, k=4)]
+bm = [s for _, s in bm25_search(q, chunks, k=4)]
+sem_n = [s / max(sem) for s in sem]
+bm_n = [s / max(bm) if max(bm) > 0 else 0 for s in bm]
+fig, (a1, a2) = plt.subplots(1, 2, figsize=(9.6, 3.8))
+b1 = a1.barh(porfonte.index, porfonte.values, color=AZUL)
+a1.bar_label(b1, padding=2); a1.set_title("Chunks por documento"); a1.set_xlabel("nº de chunks")
+x = np.arange(4); w = 0.38
+a2.bar(x - w / 2, sem_n, w, label="semântica (cosseno)", color=AZUL)
+a2.bar(x + w / 2, bm_n, w, label="BM25", color="#c0894a")
+a2.set_title("Top-4: semântica vs BM25\n(score normalizado por máx.)")
+a2.set_xticks(x); a2.set_xticklabels([f"#{i+1}" for i in x]); a2.set_xlabel("rank")
+a2.set_ylabel("score (norm.)"); a2.legend(fontsize=8)
+salvar_fig("fig3_busca.png")""")
+
 md(r"""**Acertos e falhas.** A busca **semântica** vence quando a pergunta usa
 vocabulário diferente do documento: "proteção contra alta de juros" recupera o trecho
 sobre **duration** e posição pós-fixada mesmo sem a palavra "proteção" aparecer — o
@@ -258,6 +315,18 @@ print("\nTrechos BLOQUEADOS pelo guardrail (prompt injection):")
 for c in res.blocked:
     print(f"  BLOCK | {c.source}#{c.chunk_id} | texto completo do chunk bloqueado:")
     print("        ", c.text.strip())""")
+
+code(r"""# Figura 4: guardrail (seguros vs bloqueados) e efeito do contexto na resposta.
+fig, (a1, a2) = plt.subplots(1, 2, figsize=(9, 3.6))
+b1 = a1.bar(["seguros\n(usados)", "bloqueados\n(injeção)"],
+            [len(res.contexts), len(res.blocked)], color=["#5b8c5a", "#b3434a"])
+a1.bar_label(b1, fmt="%d", padding=2)
+a1.set_title("Guardrail na consulta de risco"); a1.set_ylabel("nº de trechos recuperados")
+b2 = a2.bar(["com contexto\n(RAG)", "sem contexto\n(LLM só)"],
+            [len(com.answer), len(sem.answer)], color=[AZUL, "#9aa0a6"])
+a2.bar_label(b2, fmt="%d", padding=2)
+a2.set_title("Tamanho da resposta gerada"); a2.set_ylabel("caracteres")
+salvar_fig("fig4_rag_seguranca.png")""")
 
 md(r"""**Com vs sem contexto.** A resposta **com RAG** se apoia nos trechos reais da
 Gestora e cita a origem (rastreabilidade/auditoria); a resposta **sem contexto** é

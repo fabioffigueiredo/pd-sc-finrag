@@ -16,7 +16,7 @@ OUT = ROOT / "reports" / "finrag" / \
     "fabio_figueiredo_sistemas-cognitivos-linguagem-natural_pln.pdf"
 
 INK = (24, 26, 32)
-GOLD = (176, 137, 60)
+AZUL = (31, 78, 121)   # azul institucional INFNET (mesma identidade do Projeto 1)
 GREY = (90, 95, 105)
 
 
@@ -30,7 +30,7 @@ class Relatorio(FPDF):
         self.cell(half, 6, "FinRAG — Relatório Técnico", align="L")
         self.cell(half, 6, "Fabio Ferreira Figueiredo", align="R",
                   new_x="LMARGIN", new_y="NEXT")
-        self.set_draw_color(*GOLD)
+        self.set_draw_color(*AZUL)
         self.line(self.l_margin, 16, self.w - self.r_margin, 16)
         self.ln(6)
 
@@ -92,9 +92,9 @@ def build() -> None:
         pdf.ln(2)
         pdf.set_x(pdf.l_margin)
         pdf.set_font("DejaVu", "B", 14)
-        pdf.set_text_color(*GOLD)
+        pdf.set_text_color(*AZUL)
         pdf.multi_cell(pdf.epw, 8, txt)
-        pdf.set_draw_color(*GOLD)
+        pdf.set_draw_color(*AZUL)
         pdf.line(pdf.l_margin, pdf.get_y(), pdf.l_margin + 28, pdf.get_y())
         pdf.ln(3)
 
@@ -120,6 +120,20 @@ def build() -> None:
             pdf.set_x(pdf.l_margin)
             pdf.multi_cell(pdf.epw, 5.6, f"•  {it}")
         pdf.ln(1.5)
+
+    def figura(nome: str, legenda: str, w: float = 152) -> None:
+        path = ROOT / "reports" / "finrag" / "images" / nome
+        if not path.exists():
+            return
+        if pdf.get_y() > pdf.h - 95:   # nova página se a figura não couber
+            pdf.add_page()
+        pdf.image(str(path), x=(pdf.w - w) / 2, w=w)
+        pdf.ln(1)
+        pdf.set_x(pdf.l_margin)
+        pdf.set_font("DejaVu", "", 8)
+        pdf.set_text_color(*GREY)
+        pdf.multi_cell(pdf.epw, 4.5, legenda, align="C")
+        pdf.ln(3)
 
     pdf.add_page()
 
@@ -179,6 +193,9 @@ def build() -> None:
       "as quatro técnicas alcançaram 12/12 extrações válidas sobre as notícias de "
       "teste; few-shot e meta-prompting são os mais estáveis na forma. As versões de "
       "prompt vivem em src/finrag/prompting.py (build_extraction_prompt).")
+    figura("fig2_prompting.png",
+           "Figura 1: JSON válido por técnica (todas atingiram o total de notícias) "
+           "e distribuição dos sentimentos extraídos pelo modelo.")
 
     h1("7. Saída estruturada: JSON, parsing e validação")
     p("A saída é JSON validado por um schema pydantic (FinancialExtraction). O parser "
@@ -197,6 +214,9 @@ def build() -> None:
       "aparecer — o embedding capta o sentido. O BM25 vence quando há sobreposição "
       "literal de termos. A semântica enfraquece em consultas curtas e genéricas, onde "
       "vários chunks têm similaridade próxima.")
+    figura("fig3_busca.png",
+           "Figura 2: distribuição de chunks por documento e comparação semântica vs "
+           "BM25 (scores normalizados); a busca densa degrada mais suavemente no top-k.")
 
     h1("9. Execução local, remota ou privada")
     p("Os dois backends rodam a mesma pergunta sob a mesma interface. O Groq responde "
@@ -207,6 +227,9 @@ def build() -> None:
       "para volume e velocidade sem sigilo, a remota. Distinção encoder vs decoder: a "
       "geração usa modelos decoder-only; os embeddings usam um encoder-only (representa, "
       "não gera).")
+    figura("fig1_latencia.png",
+           "Figura 3: latência observada por backend na mesma pergunta — o modelo "
+           "remoto responde em fração do tempo do local em CPU.")
 
     h1("10. Pipeline RAG: chunking, recuperação e geração")
     p("O pipeline em Python puro: pergunta → embedding → recuperação top-k no FAISS → "
@@ -216,6 +239,9 @@ def build() -> None:
       "reintroduzir o \"chunking cego\" que gera alucinação. Comparo respostas com e "
       "sem contexto recuperado: com RAG a resposta se apoia em trechos reais e os cita "
       "(auditabilidade); sem contexto, a LLM generaliza e alucina com mais frequência.")
+    figura("fig4_rag_seguranca.png",
+           "Figura 4: o guardrail bloqueia somente o trecho de injeção (preservando os "
+           "legítimos) e a resposta com contexto é mais substanciada que a sem contexto.")
 
     h1("11. Análise de falhas")
     bullet([
