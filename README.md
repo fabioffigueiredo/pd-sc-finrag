@@ -46,10 +46,8 @@ src/finrag/
 ├── guardrails.py    # detecção/sanitização de prompt injection
 └── rag.py           # pipeline retrieve → guardrail → augment → generate
 scripts/
-├── prepare_corpus.py     # gera sintéticos + doc envenenado e indexa o corpus (FAISS)
-├── build_notebook.py     # monta o notebook FinRAG_Pipeline.ipynb
-└── gerar_relatorio_pdf.py# gera o relatório técnico em PDF
-notebooks/FinRAG_Pipeline.ipynb   # vitrine integrada (Run-All), 5 seções
+└── prepare_corpus.py     # gera sintéticos + doc envenenado e indexa o corpus (FAISS)
+notebooks/FinRAG_Pipeline.ipynb   # vitrine integrada (Run-All): 5 rubricas + síntese
 data/finrag/{synthetic,raw,index}/# corpus e índice FAISS persistido
 tests/finrag/                     # 31 testes (offline, mockados)
 reports/finrag/                   # relatório técnico (PDF)
