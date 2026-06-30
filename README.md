@@ -1,18 +1,25 @@
-# FinRAG — Assistente Cognitivo de Mercado (Projeto 2)
+<div align="center">
+  <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/30/Instituto_Infnet_logo.svg/200px-Instituto_Infnet_logo.svg.png" width="150">
+</div>
 
-> **Disciplina:** Sistemas Cognitivos com Large Language Models
-> **Programa:** Pós-Graduação em Machine Learning, Deep Learning e IA — INFNET
-> **Autor:** Fabio Ferreira Figueiredo
+**Pós-Graduação em Machine Learning, Deep Learning e Inteligência Artificial**
+**Disciplina:** Sistemas Cognitivos com Large Language Models
+
+# FinRAG — Assistente Cognitivo de Mercado
+*Aplicação cognitiva com LLMs e RAG para apoio à atribuição de performance de um fundo de investimentos*
+
+**Aluno:** Fabio Ferreira Figueiredo
+**Professor:** Fernando Guimarães Ferreira
+**Instituição:** Instituto Infnet
+**Repositório:** github.com/fabioffigueiredo/pd-sc-finrag
+
+> ⚠️ **Compliance e Privacidade:** *Projeto acadêmico. O cliente ("Gestora") é fictício e genérico. O corpus é 100% público ou sintético. Nenhuma instituição financeira real é citada. Nenhuma chave de API, token ou dado sensível corporativo foi ingerido ou exposto neste repositório.*
 
 Sistema cognitivo que recebe perguntas em linguagem natural, recupera trechos
 relevantes de uma base de conhecimento por **busca vetorial** e gera respostas
 **fundamentadas, estruturadas e auditáveis** usando LLMs — com a opção de execução
 **100% local/privada**. É a evolução do Projeto 1 (FinNLP), agora centrada em
 **LLMs + RAG**.
-
-> **Compliance.** Projeto **acadêmico**. O cliente — "a Gestora" — é **fictício e
-> genérico**; nenhuma instituição financeira real é citada. O corpus é sintético ou
-> público/citável. Nenhuma chave, token ou dado sensível está no repositório.
 
 ---
 
