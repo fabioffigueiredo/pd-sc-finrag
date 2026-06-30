@@ -18,7 +18,7 @@ code = lambda s: cells.append(nbf.v4.new_code_cell(s))
 
 # ---------------------------------------------------------------- Seção 0
 md(r"""<div align="center">
-  <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/30/Instituto_Infnet_logo.svg/200px-Instituto_Infnet_logo.svg.png" width="150">
+  <img src="../assets/logo_infnet.png" width="150" alt="Instituto Infnet">
 </div>
 
 **Pós-Graduação em Machine Learning, Deep Learning e Inteligência Artificial**
