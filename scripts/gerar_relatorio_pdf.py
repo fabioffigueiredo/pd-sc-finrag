@@ -13,7 +13,7 @@ ROOT = Path(__file__).resolve().parents[1]
 FONT_DIR = Path(matplotlib.get_data_path()) / "fonts" / "ttf"
 LOGO = ROOT / "assets" / "logo_infnet.png"
 OUT = ROOT / "reports" / "finrag" / \
-    "fabio_figueiredo_sistemas-cognitivos-linguagem-natural_pln.pdf"
+    "fabio_figueiredo_sistemas-cognitivos-linguagem-natural_aplicacoes-llms.pdf"
 
 INK = (24, 26, 32)
 AZUL = (31, 78, 121)   # azul institucional INFNET (mesma identidade do Projeto 1)
@@ -71,9 +71,13 @@ def build() -> None:
     pdf.set_font("DejaVu", "", 12)
     pdf.set_text_color(*INK)
     for linha in [
-        "Autor: Fabio Ferreira Figueiredo",
+        "Aluno: Fabio Ferreira Figueiredo",
+        "Professor: Fernando Guimarães Ferreira",
         "Disciplina: Sistemas Cognitivos com Large Language Models",
-        "Pós-Graduação em Machine Learning, Deep Learning e IA — INFNET",
+        "Pós-Graduação em Machine Learning, Deep Learning e Inteligência Artificial",
+        "Instituição: Instituto Infnet",
+        "Data: 30 de junho de 2026",
+        "Repositório: github.com/fabioffigueiredo/pd-sc-finrag",
     ]:
         pdf.set_x(pdf.l_margin)
         pdf.multi_cell(epw, 7, linha, align="C")
@@ -165,7 +169,8 @@ def build() -> None:
     bullet([
         "Geração remota: Groq, modelo llama-3.1-8b-instant (API compatível com OpenAI).",
         "Geração local/privada: GPT4All, Llama-3.2-3B-Instruct (GGUF), offline em CPU.",
-        "Embeddings: sentence-transformers (paraphrase-multilingual-MiniLM-L12-v2).",
+        "Embeddings: sentence-transformers do Hugging Face Hub (modelo pré-treinado "
+        "paraphrase-multilingual-MiniLM-L12-v2), encoder-only.",
         "Vector store: FAISS (IndexFlatIP, cosseno por normalização L2).",
         "Baseline lexical: BM25 (rank-bm25). Validação de schema: pydantic.",
         "Interface comum LLMClient.generate() — o pipeline é agnóstico ao backend.",
@@ -206,7 +211,8 @@ def build() -> None:
       "capturado.")
 
     h1("8. Embeddings e estratégia de busca")
-    p("Cada chunk é convertido em vetor por sentence-transformers e indexado em FAISS. "
+    p("Cada chunk é convertido em vetor por um modelo pré-treinado do ecossistema "
+      "Hugging Face (sentence-transformers) e indexado em FAISS. "
       "Como normalizo os vetores (L2), o produto interno equivale à similaridade de "
       "cosseno. Comparo a busca semântica com o baseline BM25 em consultas do domínio. "
       "Exemplo observado: a consulta \"proteção contra alta de juros\" recupera o "
@@ -267,8 +273,8 @@ def build() -> None:
     ])
 
     h1("13. Instruções de reprodução")
-    p("Resumo (detalhes no README-finrag.md): criar venv Python 3.12 e instalar "
-      "requirements-finrag.txt (numpy fica pinado em 1.26.4); copiar .env.example para "
+    p("Resumo (detalhes no README.md): criar venv Python 3.12 com uv e instalar "
+      "requirements.txt (numpy fica pinado em 1.26.4); copiar .env.example para "
       ".env e preencher GROQ_API_KEY (free tier); baixar o modelo GPT4All; rodar "
       "scripts/prepare_corpus.py para indexar; executar o notebook com jupyter "
       "nbconvert --execute. Sem chave da Groq, o sistema cai para um MockLLM e ainda "

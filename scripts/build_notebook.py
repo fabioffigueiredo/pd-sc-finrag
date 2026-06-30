@@ -17,19 +17,24 @@ md = lambda s: cells.append(nbf.v4.new_markdown_cell(s))
 code = lambda s: cells.append(nbf.v4.new_code_cell(s))
 
 # ---------------------------------------------------------------- Seção 0
-md(r"""# FinRAG — Assistente Cognitivo de Mercado
+md(r"""<div align="center">
+  <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/30/Instituto_Infnet_logo.svg/200px-Instituto_Infnet_logo.svg.png" width="150">
+</div>
 
-**Autor:** Fabio Ferreira Figueiredo
+**Pós-Graduação em Machine Learning, Deep Learning e Inteligência Artificial**
 **Disciplina:** Sistemas Cognitivos com Large Language Models
-**Programa:** Pós-Graduação em Machine Learning, Deep Learning e IA — INFNET
+### **FinRAG — Assistente Cognitivo de Mercado**
+*Aplicação cognitiva com LLMs e RAG para apoio à atribuição de performance de um fundo de investimentos*
+
+**Aluno:** Fabio Ferreira Figueiredo
+**Professor:** Fernando Guimarães Ferreira
+**Instituição:** Instituto Infnet
+**Data:** 30 de junho de 2026
+**Repositório:** github.com/fabioffigueiredo/pd-sc-finrag
+
+> ⚠️ **Compliance e Privacidade:** *Projeto acadêmico. O cliente ("Gestora") é fictício e genérico. O corpus é 100% público ou sintético. Nenhuma instituição financeira real é citada. Nenhuma chave de API, token ou dado sensível corporativo foi ingerido ou exposto neste repositório.*
 
 ---
-
-> **Nota de compliance.** Este é um projeto **acadêmico**. O cliente — "a Gestora" —
-> é **fictício e genérico**; nenhuma instituição financeira real é citada. Todo o
-> corpus é sintético (criado para o exercício) ou público e citável. Nenhuma chave,
-> token ou dado sensível está no repositório (a chave da Groq fica em `.env`,
-> ignorado pelo git).
 
 ## O problema
 
@@ -232,7 +237,10 @@ sem validação é uma armadilha — decidi sempre validar contra o schema.""")
 # ---------------------------------------------------------------- Seção 3
 md(r"""## 3. Embeddings Semânticos e Busca (Rubrica 3)
 
-Carrego o índice **FAISS** persistido (gerado por `scripts/prepare_corpus.py`). Os
+Para representar o corpus, decidi usar um **modelo pré-treinado do ecossistema
+Hugging Face** — `sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2`,
+um encoder-only multilíngue —, baixado do **Hugging Face Hub**. Carrego o índice
+**FAISS** persistido (gerado por `scripts/prepare_corpus.py`). Os
 documentos foram quebrados com **chunking consciente**: respeito fronteiras de
 parágrafo/sentença e mantenho **sobreposição** (overlap) entre chunks. Decidi assim
 porque notei, no relato do professor sobre o NotebookLM, que cortar texto no meio de
@@ -365,18 +373,18 @@ precisa justificar arquitetura e segurança, escolhi transparência.""")
 # ---------------------------------------------------------------- Seção 5
 md(r"""## 5. Síntese Executiva
 
-> A Gestora passa a consultar seus relatórios e notícias de mercado **fazendo
-> perguntas em português comum** e recebendo respostas **fundamentadas nos próprios
-> documentos**, com indicação de onde cada informação foi encontrada. O que antes
-> exigia horas de leitura manual passa a levar segundos, com **rastreabilidade** para
-> auditoria. Documentos sensíveis podem ser consultados **sem sair do computador da
-> Gestora**, eliminando o risco de vazamento. E o sistema **recusa instruções
-> escondidas** dentro dos documentos, protegendo as decisões contra manipulação. O
-> resultado é uma **leitura assistida, privada e auditável** que acelera a tomada de
-> decisão da equipe de gestão.
+> O **FinRAG** atua como um **assistente de leitura instantâneo**: ele processa
+> relatórios e notícias longas com **total privacidade**, rodando **offline** no
+> próprio computador da Gestora. Com isso, **aumenta a agilidade da tomada de
+> decisão** do fundo, **extrai os principais pontos de forma organizada** e aponta
+> de onde cada informação foi tirada, dando **rastreabilidade** para auditoria.
+> Além disso, conta com uma **barreira de segurança** que **bloqueou 100% das
+> tentativas de sabotagem** (instruções escondidas dentro dos documentos) durante
+> os testes. O que antes exigia horas de leitura manual passa a levar segundos —
+> sem que nenhum documento sensível saia de casa.
 
-*(Síntese deliberadamente sem termos técnicos — foco em risco mitigado, tempo
-economizado, automação e auditabilidade.)*""")
+*(Síntese deliberadamente sem termos técnicos — foco em privacidade, tempo
+economizado, organização da informação e segurança comprovada.)*""")
 
 nb["cells"] = cells
 nb.metadata["kernelspec"] = {"name": "python3", "display_name": "Python 3",
