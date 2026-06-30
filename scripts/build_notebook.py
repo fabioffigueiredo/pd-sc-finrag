@@ -47,9 +47,10 @@ e atas no ChatGPT.
 Decidi construir o **FinRAG**: um assistente que recebe perguntas em linguagem
 natural, recupera trechos relevantes de uma base de conhecimento por busca vetorial
 e gera respostas **fundamentadas, estruturadas e auditáveis**, com a opção de rodar
-**100% local/privado**. As cinco seções a seguir percorrem as cinco competências da
-disciplina: seleção de modelos, prompt engineering, embeddings/busca, RAG e
-segurança, fechando com uma síntese executiva sem jargão.""")
+**100% local/privado**. As seções seguem **a ordem das cinco competências da
+disciplina**: (1) modelos pré-treinados e ecossistema Hugging Face, (2) prompt
+engineering, (3) embeddings e busca, (4) inferência local/privada e (5) RAG e
+segurança — fechando com uma síntese executiva sem jargão.""")
 
 code(r"""# Setup: carrego a chave da Groq do .env e exponho o pacote finrag.
 import sys, time, warnings
@@ -86,70 +87,45 @@ def salvar_fig(nome):
 print("Ambiente carregado.")""")
 
 # ---------------------------------------------------------------- Seção 1
-md(r"""## 1. Seleção de Modelos e Inferência (Rubricas 1 e 4)
+md(r"""## 1. Modelos Pré-treinados e Ecossistema Hugging Face (Rubrica 1)
 
-Decidi colocar **dois modelos sob a mesma interface** `LLMClient.generate(...)`: um
-**remoto** (Groq, `llama-3.1-8b-instant`) e um **local/privado** (GPT4All,
-`Llama-3.2-3B-Instruct`, rodando em CPU, offline). Notei que essa abstração deixa o
-restante do pipeline agnóstico ao backend — troco remoto↔local com uma linha.
+Decidi operar **modelos pré-treinados como componentes técnicos** da aplicação, e
+não apenas chamar uma ferramenta pronta. Coloquei **dois modelos de geração sob a
+mesma interface** `LLMClient.generate(...)`: um **remoto** (Groq,
+`llama-3.1-8b-instant`) e um **local** (GPT4All, `Llama-3.2-3B-Instruct`); e, para
+representação, um **encoder do Hugging Face Hub** (`sentence-transformers`, Seção 3).
+Notei que essa abstração deixa o restante do pipeline agnóstico ao backend — troco
+remoto↔local com uma linha.
 
-Abaixo rodo a **mesma pergunta** nos dois e meço a latência observada.""")
+Abaixo opero o modelo remoto sobre uma pergunta do domínio, com **parâmetros de
+geração explícitos** (`temperature=0`, `max_tokens=160`).""")
 
 code(r"""pergunta = ("Quais são os principais riscos de uma carteira de renda fixa "
             "diante de uma alta da taxa de juros? Responda em 2 frases.")
 
+# Opero o modelo pré-treinado remoto (Groq) como componente da aplicação.
 groq = get_llm("groq")
 t0 = time.perf_counter()
 resp_groq = groq.generate(pergunta, temperature=0, max_tokens=160)
 dt_groq = time.perf_counter() - t0
 
-local = get_llm("local")  # carrega o GGUF do cache (~1.9 GB); roda em CPU
-t0 = time.perf_counter()
-resp_local = local.generate(pergunta, temperature=0, max_tokens=160)
-dt_local = time.perf_counter() - t0
+print("== GROQ (remoto, llama-3.1-8b-instant) ==\n", resp_groq.strip())
+print(f"\nlatência: {dt_groq:.2f}s | parâmetros: temperature=0, max_tokens=160")""")
 
-print("== GROQ (remoto) ==\n", resp_groq.strip())
-print("\n== GPT4All (local) ==\n", resp_local.strip())""")
+md(r"""**Operando o modelo como componente.** A resposta acima é gerada por um modelo
+pré-treinado aplicado ao **domínio do projeto** (renda fixa da Gestora). A
+`temperature=0` é deliberada: quero **previsibilidade e reprodutibilidade**, não
+criatividade — uma decisão de configuração, não um default.
 
-code(r"""# Tabela de comparação (dados brutos observados nesta execução).
-comparativo = pd.DataFrame([
-    {"modelo": "Groq llama-3.1-8b (remoto)", "latencia_s": round(dt_groq, 2),
-     "execucao": "API cloud", "privacidade": "dado sai da máquina",
-     "custo": "free tier / por token", "hardware": "nenhum local"},
-    {"modelo": "GPT4All Llama-3.2-3B (local)", "latencia_s": round(dt_local, 2),
-     "execucao": "CPU local", "privacidade": "100% offline",
-     "custo": "zero (só hardware)", "hardware": "CPU + ~2 GB RAM"},
-])
-comparativo""")
-
-code(r"""# Figura 1: latência observada — remoto (Groq) vs local (GPT4All).
-fig, ax = plt.subplots(figsize=(6, 3.6))
-barras = ax.bar(["Groq\n(remoto)", "GPT4All\n(local, CPU)"], [dt_groq, dt_local],
-                color=[AZUL, "#c0894a"])
-ax.bar_label(barras, fmt="%.2f s", padding=3)
-ax.set_ylabel("Latência (s)")
-ax.set_title("Latência por backend — mesma pergunta, temperature=0")
-salvar_fig("fig1_latencia.png")""")
-
-md(r"""**Leitura dos resultados.** Os tempos acima mostram o trade-off central da
-Rubrica 4: o **Groq** responde em fração de segundo porque roda em infraestrutura
-dedicada, mas o texto da pergunta **sai da máquina** — inaceitável para um documento
-confidencial da Gestora (o risco do caso Samsung). O **GPT4All** é bem mais lento
-(CPU, sem GPU) e a qualidade do modelo 3B é inferior, mas **nada trafega para fora**:
-é a opção para dados sensíveis. Vale registrar honestamente um **artefato observável**
-na resposta local acima: o modelo 3B em CPU entra em **repetição** (repete "os
-principais riscos incluem…"), um sinal concreto da menor capacidade do modelo pequeno
-— padrão que o Groq, maior, não exibe. É exatamente o tipo de limitação que justifica
-escolher o backend conforme o caso de uso, e não por preferência cega.
-
-**Encoder-only vs decoder-only.** Notei que minha arquitetura já encena a distinção
-que a Rubrica 1 pede. A **geração** (Groq/GPT4All) usa modelos **decoder-only** —
-otimizados para produzir texto autoregressivamente. Já os **embeddings** da Seção 3
-(`sentence-transformers`) são **encoder-only** — não geram texto, produzem uma
-**representação** vetorial densa da frase para comparação semântica. São ferramentas
-para tarefas diferentes: represento com encoder, gero com decoder. A `temperature=0`
-em todas as chamadas é deliberada — quero previsibilidade e reprodutibilidade, não
-criatividade.""")
+**Encoder-only vs decoder-only (a distinção que a Rubrica 1 pede).** Minha
+arquitetura já encena os dois tipos. A **geração** (Groq/GPT4All) usa modelos
+**decoder-only** — otimizados para produzir texto autoregressivamente, token a
+token. Já os **embeddings** da Seção 3 (`sentence-transformers`, do Hugging Face
+Hub) são **encoder-only** — não geram texto, produzem uma **representação** vetorial
+densa da frase para comparação semântica. São ferramentas para tarefas diferentes:
+**represento com encoder, gero com decoder**. A comparação de desempenho entre os
+dois modelos de geração (remoto vs local) está na **Seção 4**, e a comparação entre
+estratégias de recuperação (semântica vs BM25) na **Seção 3**.""")
 
 # ---------------------------------------------------------------- Seção 2
 md(r"""## 2. Prompt Engineering e Saídas Controladas (Rubrica 2)
@@ -161,7 +137,19 @@ formato e quebra o parsing a jusante.
 
 Comparo quatro técnicas sobre as mesmas notícias (fictícias): **zero-shot** (baseline),
 **few-shot** (com exemplo), **chain-of-thought** (pensa passo a passo) e
-**meta-prompting** (critica a própria resposta antes de responder).""")
+**meta-prompting** (critica a própria resposta antes de responder). Cada prompt tem
+**papel** ("Você é um analista financeiro"), **instrução de formato** (as chaves do
+JSON) e, conforme a técnica, **exemplo** ou **instrução de raciocínio**.""")
+
+code(r"""# Os 4 prompts EFETIVOS (versões testadas), montados por build_extraction_prompt.
+amostra = ("A Acme Energia reportou queda de 12% na receita trimestral após a "
+           "paralisação de uma usina; analistas elevaram o alerta de risco.")
+for tecnica in ["zero_shot", "few_shot", "cot", "meta"]:
+    print("=" * 72)
+    print(f"PROMPT — {tecnica}")
+    print("=" * 72)
+    print(build_extraction_prompt(amostra, tecnica))
+    print()""")
 
 code(r"""noticias = [
     "A Acme Energia reportou queda de 12% na receita trimestral após a paralisação "
@@ -223,16 +211,21 @@ salvar_fig("fig2_prompting.png")""")
 
 md(r"""**Avaliação das técnicas.** Meu critério explícito de qualidade é a **taxa de
 JSON válido** (todos os campos presentes e `sentimento` no enum) e a coerência da
-extração. Na prática, **few-shot** e **meta-prompting** tendem a ser os mais
-estáveis: o exemplo do few-shot ancora o formato, e o meta-prompting reduz campos
-inconsistentes ao pedir uma autocrítica antes da resposta. O **zero-shot** é o que
-mais varia o formato; o **chain-of-thought** ajuda no raciocínio, mas, como peço o
-JSON ao final, o ganho aqui é menor que numa tarefa de cálculo.
+extração. Comparando as quatro versões de prompt exibidas acima: **few-shot** e
+**meta-prompting** tendem a ser os mais estáveis — o exemplo do few-shot ancora o
+formato, e o meta-prompting reduz campos inconsistentes ao pedir uma autocrítica
+antes da resposta. O **zero-shot** é o que mais varia o formato; o
+**chain-of-thought** ajuda no raciocínio, mas, como peço o JSON ao final, o ganho
+aqui é menor que numa tarefa de cálculo.
 
 O ponto crítico de engenharia é a **defesa do parsing**: a célula acima mostra
 `parse_json_response` recuperando um JSON embrulhado em cerca de código e prosa, e o
 `try/except` capturando o caso sem JSON sem derrubar o pipeline. Saída estruturada
-sem validação é uma armadilha — decidi sempre validar contra o schema.""")
+sem validação é uma armadilha — decidi sempre validar contra o schema.
+
+> **Em termos de negócio:** dei ao modelo um "formulário" fixo para preencher e um
+> conferente que recusa formulário mal preenchido — assim a saída entra direto nos
+> sistemas da Gestora sem revisão manual.""")
 
 # ---------------------------------------------------------------- Seção 3
 md(r"""## 3. Embeddings Semânticos e Busca (Rubrica 3)
@@ -294,10 +287,70 @@ e é mais barato. Onde a semântica **falha/empata**: consultas curtas e muito
 genéricas, em que vários chunks têm similaridade parecida e o ranqueamento fica
 sensível. Por isso justifico a escolha: para perguntas em linguagem natural sobre
 relatórios, a recuperação **densa** é mais robusta, mas reconheço que uma busca
-**híbrida** (densa + BM25) seria a evolução natural.""")
+**híbrida** (densa + BM25) seria a evolução natural.
+
+> **Em termos de negócio:** o sistema acha o trecho certo do relatório mesmo quando o
+> analista pergunta com outras palavras — ele entende o que foi perguntado, não só
+> casa palavra por palavra.""")
 
 # ---------------------------------------------------------------- Seção 4
-md(r"""## 4. Pipeline RAG e Segurança (Rubrica 5)
+md(r"""## 4. Inferência Local, Remota ou Privada (Rubrica 4)
+
+Agora comparo as **duas estratégias de execução** sob a mesma interface e a mesma
+pergunta da Seção 1: o **Groq** (remoto, já medido) e o **GPT4All** (local, em CPU,
+offline). O objetivo é tornar explícito o trade-off entre **privacidade, custo e
+latência** que decide qual backend usar.""")
+
+code(r"""local = get_llm("local")  # carrega o GGUF do cache (~1.9 GB); roda em CPU
+t0 = time.perf_counter()
+resp_local = local.generate(pergunta, temperature=0, max_tokens=160)
+dt_local = time.perf_counter() - t0
+
+print("== GPT4All (local, Llama-3.2-3B-Instruct) ==\n", resp_local.strip())
+print(f"\nlatência local: {dt_local:.2f}s  |  latência remota (Groq): {dt_groq:.2f}s")""")
+
+code(r"""# Tabela de comparação (dados brutos observados nesta execução).
+comparativo = pd.DataFrame([
+    {"modelo": "Groq llama-3.1-8b (remoto)", "latencia_s": round(dt_groq, 2),
+     "execucao": "API cloud", "privacidade": "dado sai da máquina",
+     "custo": "free tier / por token", "hardware": "nenhum local"},
+    {"modelo": "GPT4All Llama-3.2-3B (local)", "latencia_s": round(dt_local, 2),
+     "execucao": "CPU local", "privacidade": "100% offline",
+     "custo": "zero (só hardware)", "hardware": "CPU + ~2 GB RAM"},
+])
+comparativo""")
+
+code(r"""# Figura 1: latência observada — remoto (Groq) vs local (GPT4All).
+fig, ax = plt.subplots(figsize=(6, 3.6))
+barras = ax.bar(["Groq\n(remoto)", "GPT4All\n(local, CPU)"], [dt_groq, dt_local],
+                color=[AZUL, "#c0894a"])
+ax.bar_label(barras, fmt="%.2f s", padding=3)
+ax.set_ylabel("Latência (s)")
+ax.set_title("Latência por backend — mesma pergunta, temperature=0")
+salvar_fig("fig1_latencia.png")""")
+
+md(r"""**O trade-off da Rubrica 4.** Os tempos acima mostram o ponto central: o
+**Groq** responde em fração de segundo porque roda em infraestrutura dedicada, mas o
+texto da pergunta **sai da máquina** — inaceitável para um documento confidencial da
+Gestora (o risco do caso Samsung). O **GPT4All** é bem mais lento (CPU, sem GPU) e a
+qualidade do modelo 3B é inferior, mas **nada trafega para fora**: é a opção para
+dados sensíveis. Vale registrar honestamente um **artefato observável** na resposta
+local acima: o modelo 3B em CPU entra em **repetição** (repete "os principais riscos
+incluem…"), um sinal concreto da menor capacidade do modelo pequeno — padrão que o
+Groq, maior, não exibe. É exatamente o tipo de limitação que justifica escolher o
+backend conforme o caso de uso, e não por preferência cega.
+
+**Minha decisão de arquitetura.** Para dados sensíveis da Gestora, a inferência
+**local/privada** é a escolha defensável (privacidade acima de tudo); para volume e
+velocidade sem sigilo, a **remota**. A `temperature=0` vale para os dois, garantindo
+reprodutibilidade.
+
+> **Em termos de negócio:** documentos sigilosos rodam dentro de casa, sem mandar nada
+> para a nuvem; o que é público pode usar o serviço externo, mais rápido. A Gestora
+> escolhe velocidade ou sigilo conforme o caso.""")
+
+# ---------------------------------------------------------------- Seção 5
+md(r"""## 5. Pipeline RAG e Segurança (Rubrica 5)
 
 Agora integro tudo em **Python puro**: a pergunta vira embedding → recuperação top-k
 no FAISS → **guardrail** valida os trechos → monto o prompt aumentado → o Groq gera
@@ -368,10 +421,14 @@ Decidi **não** usar o framework: o enunciado valoriza demonstrar domínio do pi
 e montar o prompt à mão me deixa **ver e controlar** cada etapa (inclusive inserir o
 guardrail entre recuperação e geração). O trade-off é claro — **controle e
 transparência** (Python puro) **vs conveniência** (LangChain). Para um projeto que
-precisa justificar arquitetura e segurança, escolhi transparência.""")
+precisa justificar arquitetura e segurança, escolhi transparência.
 
-# ---------------------------------------------------------------- Seção 5
-md(r"""## 5. Síntese Executiva
+> **Em termos de negócio:** o assistente só responde com base nos documentos da
+> Gestora e mostra de onde tirou cada informação; e bloqueia ordens escondidas dentro
+> dos arquivos, impedindo que alguém manipule as respostas.""")
+
+# ---------------------------------------------------------------- Seção 6
+md(r"""## 6. Síntese Executiva
 
 > O **FinRAG** atua como um **assistente de leitura instantâneo**: ele processa
 > relatórios e notícias longas com **total privacidade**, rodando **offline** no

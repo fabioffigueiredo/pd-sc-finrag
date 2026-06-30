@@ -193,6 +193,25 @@ def build() -> None:
         "chain-of-thought: pede raciocínio passo a passo antes do JSON.",
         "meta-prompting: pede que o modelo critique e corrija a própria resposta.",
     ])
+    h2("Prompts efetivos (versões testadas)")
+    p("Base comum a todas as técnicas (papel + formato de saída):")
+    p("  \"Você é um analista financeiro. Responda APENAS com um objeto JSON com as "
+      "chaves exatas: 'empresa', 'evento', 'sentimento' (positivo|negativo|neutro), "
+      "'risco', 'horizonte'.\"")
+    bullet([
+        "zero-shot = base + 'Texto: \"<noticia>\"'.",
+        "few-shot = base + exemplo rotulado ('Texto: \"A Beta Corp anunciou recompra "
+        "recorde de ações.\" {\"empresa\":\"Beta Corp\",\"evento\":\"recompra de "
+        "ações\",\"sentimento\":\"positivo\",\"risco\":\"baixo\",\"horizonte\":"
+        "\"médio\"}') + 'Texto: \"<noticia>\"'.",
+        "chain-of-thought = base + 'Pense passo a passo internamente, mas devolva SÓ "
+        "o JSON.' + 'Texto: \"<noticia>\"'.",
+        "meta-prompting = base + 'Antes de responder, critique mentalmente sua "
+        "extração e corrija inconsistências. Devolva SÓ o JSON final.' + 'Texto: "
+        "\"<noticia>\"'.",
+    ])
+    p("Os quatro prompts são montados por build_extraction_prompt (src/finrag/"
+      "prompting.py) e exibidos na íntegra na Seção 2 do notebook.")
     p("Critério de qualidade explícito: taxa de JSON válido (todos os campos "
       "presentes e sentimento dentro do enum) e coerência da extração. Na execução, "
       "as quatro técnicas alcançaram 12/12 extrações válidas sobre as notícias de "
@@ -220,6 +239,9 @@ def build() -> None:
       "aparecer — o embedding capta o sentido. O BM25 vence quando há sobreposição "
       "literal de termos. A semântica enfraquece em consultas curtas e genéricas, onde "
       "vários chunks têm similaridade próxima.")
+    p("Em termos de negócio: o sistema acha o trecho certo do relatório mesmo quando "
+      "o analista pergunta com outras palavras — ele entende o sentido da pergunta, "
+      "não apenas casa palavra por palavra.")
     figura("fig3_busca.png",
            "Figura 2: distribuição de chunks por documento e comparação semântica vs "
            "BM25 (scores normalizados); a busca densa degrada mais suavemente no top-k.")
@@ -233,6 +255,9 @@ def build() -> None:
       "para volume e velocidade sem sigilo, a remota. Distinção encoder vs decoder: a "
       "geração usa modelos decoder-only; os embeddings usam um encoder-only (representa, "
       "não gera).")
+    p("Em termos de negócio: documentos sigilosos rodam dentro de casa, sem mandar "
+      "nada para a nuvem; o que é público pode usar o serviço externo, mais rápido. "
+      "A Gestora escolhe velocidade ou sigilo conforme o caso.")
     figura("fig1_latencia.png",
            "Figura 3: latência observada por backend na mesma pergunta — o modelo "
            "remoto responde em fração do tempo do local em CPU.")
@@ -245,6 +270,9 @@ def build() -> None:
       "reintroduzir o \"chunking cego\" que gera alucinação. Comparo respostas com e "
       "sem contexto recuperado: com RAG a resposta se apoia em trechos reais e os cita "
       "(auditabilidade); sem contexto, a LLM generaliza e alucina com mais frequência.")
+    p("Em termos de negócio: o assistente só responde com base nos documentos da "
+      "Gestora e mostra de onde tirou cada informação; e bloqueia ordens escondidas "
+      "dentro dos arquivos, impedindo que alguém manipule as respostas.")
     figura("fig4_rag_seguranca.png",
            "Figura 4: o guardrail bloqueia somente o trecho de injeção (preservando os "
            "legítimos) e a resposta com contexto é mais substanciada que a sem contexto.")
