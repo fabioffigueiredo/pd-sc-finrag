@@ -15,6 +15,14 @@
 
 > ⚠️ **Compliance e Privacidade:** *Projeto acadêmico. O cliente ("Gestora") é fictício e genérico. O corpus é 100% público ou sintético. Nenhuma instituição financeira real é citada. Nenhuma chave de API, token ou dado sensível corporativo foi ingerido ou exposto neste repositório.*
 
+> ### ⚠️ Aviso de Reprodutibilidade
+>
+> **A primeira execução deste pipeline requer acesso à Internet** para o download
+> automático dos pesos do modelo local **GPT4All** (`Llama-3.2-3B-Instruct`, ~2 GB)
+> e do encoder **`sentence-transformers`** para o cache local da máquina. Reserve
+> tempo e banda para esse download inicial. **Depois disso, o sistema opera de forma
+> 100% offline e privada** — nenhum texto do corpus precisa sair da máquina.
+
 Sistema cognitivo que recebe perguntas em linguagem natural, recupera trechos
 relevantes de uma base de conhecimento por **busca vetorial** e gera respostas
 **fundamentadas, estruturadas e auditáveis** usando LLMs — com a opção de execução
